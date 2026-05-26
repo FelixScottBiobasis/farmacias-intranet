@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farmacias Cruz de Santiago — Control de Gestión</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root {
+  color-scheme: light;
+  --blue-900: #0a2d5e;
+  --blue-800: #0d3d7a;
+  --blue-700: #1150a0;
+  --blue-600: #1565c0;
+  --blue-500: #1976d2;
+  --blue-400: #42a5f5;
+  --blue-100: #dbeafe;
+  --blue-50:  #eff6ff;
+  --teal-700: #085041;
+  --teal-600: #0f6e56;
+  --teal-500: #1d9e75;
+  --teal-50:  #e1f5ee;
+  --gray-900: #1a1a18;
+  --gray-600: #5f5e5a;
+  --gray-400: #888780;
+  --gray-200: #d3d1c7;
+  --gray-100: #ebebea;
+  --gray-50:  #f8f7f4;
+  --white:    #ffffff;
+  --green-600:#0f6e56; --green-50:#e1f5ee;
+  --red-600:  #a32d2d; --red-50:  #fcebeb;
+  --amber-600:#854f0b; --amber-50: #faeeda;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; }
+
+/* NAV */
+nav { background: var(--blue-800); padding: 0 1.75rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo { width: 32px; height: 32px; background: var(--white); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-logo svg { display: block; }
+.nav-brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+.nav-brand-name { font-size: 13px; font-weight: 600; color: var(--white); letter-spacing: -0.01em; }
+.nav-brand-sub  { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 400; }
+.nav-links { display: flex; align-items: center; gap: 2px; }
+.nav-link { padding: 6px 11px; border-radius: 6px; font-size: 12.5px; color: rgba(255,255,255,0.72); text-decoration: none; cursor: pointer; transition: background 0.15s, color 0.15s; white-space: nowrap; }
+.nav-link:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+.nav-link.active { background: rgba(255,255,255,0.18); color: var(--white); font-weight: 500; }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-date { font-size: 11px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+.nav-avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--white); cursor: pointer; }
+
+/* MAIN */
+main { max-width: 1140px; margin: 0 auto; padding: 1.75rem 1.5rem 2.5rem; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* PAGE HEADER */
+.page-header { margin-bottom: 1.25rem; }
+.page-header h1 { font-size: 17px; font-weight: 500; color: var(--gray-900); }
+.page-header p  { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+/* SECTION LABEL */
+.section-label { font-size: 10.5px; font-weight: 600; color: var(--blue-700); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.section-label::before { content: ''; display: inline-block; width: 12px; height: 2px; background: var(--blue-500); border-radius: 1px; }
+.section-gap { margin-top: 2rem; }
+
+/* ========== INICIO PAGE ========== */
+.metrics-section { margin-bottom: 1.75rem; }
+.metrics-grid { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: 0; border-radius: 10px; overflow: hidden; border: 0.5px solid rgba(0,0,0,0.1); background: var(--white); }
+.col-headers { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: 0; }
+.sales-grid { display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 0; border-radius: 10px; overflow: hidden; border: 0.5px solid rgba(0,0,0,0.1); background: var(--white); }
+.sales-col-headers { display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 0; }
+.col-hdr { background: var(--blue-800); padding: 9px 14px; font-size: 10.5px; font-weight: 600; color: rgba(255,255,255,0.80); text-transform: uppercase; letter-spacing: 0.05em; text-align: center; border-right: 0.5px solid rgba(255,255,255,0.08); }
+.col-hdr:last-child { border-right: none; }
+.col-hdr.person-hdr { text-align: left; color: rgba(255,255,255,0.5); }
+.metric-row { display: contents; }
+.metric-row > * { border-bottom: 0.5px solid rgba(0,0,0,0.06); border-right: 0.5px solid rgba(0,0,0,0.06); }
+.metric-row:last-child > * { border-bottom: none; }
+.metric-row > *:last-child { border-right: none; }
+.person-cell { padding: 14px 14px; display: flex; flex-direction: column; justify-content: center; background: var(--blue-50); }
+.person-name { font-size: 13px; font-weight: 600; color: var(--blue-800); }
+.person-role { font-size: 10px; color: var(--blue-500); margin-top: 2px; }
+.metric-row.total-row .person-cell { background: var(--blue-800); }
+.metric-row.total-row .person-name { color: var(--white); }
+.metric-row.total-row .person-role  { color: rgba(255,255,255,0.55); }
+.metric-row.total-row .metric-cell  { background: #f0f6ff; }
+.metric-row.total-row .metric-value { color: var(--blue-800); font-size: 17px; }
+.metric-cell { padding: 14px 14px; text-align: center; background: var(--white); position: relative; }
+.metric-value { font-size: 15px; font-weight: 500; color: var(--gray-900); line-height: 1.2; }
+.metric-delta { font-size: 10px; margin-top: 4px; font-weight: 500; }
+.delta-up   { color: var(--green-600); }
+.delta-down { color: var(--red-600); }
+.delta-neu  { color: var(--gray-400); }
+.task-count { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; font-weight: 600; margin: 0 auto; }
+.task-low  { background: var(--green-50);  color: var(--green-600); }
+.task-med  { background: var(--amber-50);  color: var(--amber-600); }
+.task-high { background: var(--red-50);    color: var(--red-600); }
+.drawers-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-top: 1.75rem; }
+.drawer { background: var(--white); border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.09); overflow: hidden; }
+.drawer-head { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid rgba(0,0,0,0.07); }
+.drawer-title { font-size: 13px; font-weight: 500; color: var(--gray-900); display: flex; align-items: center; gap: 8px; }
+.drawer-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.drawer-count { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.ct-alert { background: var(--red-50); color: var(--red-600); }
+.ct-anun  { background: var(--blue-100); color: var(--blue-700); }
+.ct-event { background: var(--teal-50); color: var(--teal-600); }
+.di-alert { background: var(--red-50); }
+.di-anun  { background: var(--blue-50); }
+.di-event { background: var(--teal-50); }
+.drawer-body { padding: 10px 12px; }
+.d-item { display: flex; gap: 10px; padding: 9px 4px; border-bottom: 0.5px solid rgba(0,0,0,0.05); align-items: flex-start; }
+.d-item:last-child { border-bottom: none; }
+.d-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.dd-alert { background: #e24b4a; } .dd-warn { background: #ef9f27; } .dd-ok { background: #1d9e75; } .dd-blue { background: var(--blue-500); }
+.d-content { flex: 1; }
+.d-title { font-size: 12.5px; font-weight: 500; color: var(--gray-900); line-height: 1.35; }
+.d-desc  { font-size: 11.5px; color: var(--gray-600); line-height: 1.4; margin-top: 2px; }
+.d-meta  { font-size: 10.5px; color: var(--gray-400); margin-top: 3px; }
+.evt-date { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: var(--blue-50); flex-shrink: 0; }
+.evt-day   { font-size: 14px; font-weight: 600; color: var(--blue-700); line-height: 1; }
+.evt-month { font-size: 9px;  font-weight: 500; color: var(--blue-400); text-transform: uppercase; }
+
+/* ========== DIRECTORIO ========== */
+.dir-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.dir-search { flex: 1; min-width: 200px; padding: 8px 14px; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; font-size: 13px; color: var(--gray-900); background: var(--white); outline: none; }
+.dir-search:focus { border-color: var(--blue-400); }
+.dir-filters { display: flex; gap: 6px; }
+.dir-filter-btn { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 0.5px solid rgba(0,0,0,0.13); cursor: pointer; background: var(--white); color: var(--gray-600); transition: all 0.15s; }
+.dir-filter-btn.active, .dir-filter-btn:hover { background: var(--blue-800); color: var(--white); border-color: var(--blue-800); }
+.dir-section-hdr { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.dir-farmacia-tag { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 4px; }
+.dir-tag-f1 { background: var(--blue-100); color: var(--blue-700); }
+.dir-tag-f2 { background: #d1fae5; color: var(--teal-700); }
+.dir-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.75rem; }
+.dir-card { background: var(--white); border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.08); padding: 1.1rem 1.2rem; }
+.dir-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.dir-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; letter-spacing: -0.5px; }
+.dir-name { font-size: 14px; font-weight: 600; color: var(--gray-900); line-height: 1.3; }
+.dir-role { font-size: 11.5px; color: var(--gray-400); margin-top: 1px; }
+.dir-divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.06); margin: 0 0 10px; }
+.dir-row { font-size: 12px; color: var(--gray-600); margin-bottom: 6px; display: flex; align-items: flex-start; gap: 7px; line-height: 1.4; }
+.dir-row:last-child { margin-bottom: 0; }
+.dir-icon { color: var(--gray-400); width: 14px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+
+/* ========== CALENDARIO ========== */
+.form-section-title { font-size: 14px; font-weight: 600; color: var(--gray-900); margin-bottom: 1.25rem; }
+.form-field { margin-bottom: 14px; }
+.form-label { font-size: 11px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block; }
+.form-input { width: 100%; padding: 8px 12px; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 7px; font-size: 13px; color: var(--gray-900); background: var(--white); outline: none; font-family: inherit; box-sizing: border-box; }
+.form-input:focus { border-color: var(--blue-400); }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.cat-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-opt { display: flex; }
+.cat-opt input[type="radio"] { display: none; }
+.cat-lbl { cursor: pointer; padding: 5px 13px; border-radius: 6px; border: 1.5px solid transparent; font-size: 12px; font-weight: 500; transition: all 0.15s; }
+.cat-opt input:checked + .cat-lbl { border-color: currentColor; font-weight: 700; }
+.cat-lbl.cl-green { background: #dcfce7; color: #166534; }
+.cat-lbl.cl-blue  { background: var(--blue-100); color: var(--blue-800); }
+.cat-lbl.cl-amber { background: var(--amber-50); color: var(--amber-600); }
+.cat-lbl.cl-red   { background: var(--red-50); color: var(--red-600); }
+.ev-submit-btn { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--blue-800); color: var(--white); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 6px; transition: background 0.15s; }
+.ev-submit-btn:hover { background: var(--blue-700); }
+.ev-validation { font-size: 12px; color: var(--red-600); margin-top: 8px; display: none; }
+.upc-delete-btn { width: 22px; height: 22px; border-radius: 50%; border: 0.5px solid rgba(0,0,0,0.1); background: transparent; color: var(--gray-400); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 8px; line-height: 1; padding: 0; font-family: inherit; transition: all 0.15s; }
+.upc-delete-btn:hover { background: var(--red-50); color: var(--red-600); border-color: transparent; }
+.cal-layout { display: grid; grid-template-columns: 1fr 270px; gap: 1.25rem; align-items: start; }
+.cal-card { background: var(--white); border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.08); padding: 1.25rem; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.cal-month-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.cal-nav-btn { width: 28px; height: 28px; border-radius: 6px; border: 0.5px solid rgba(0,0,0,0.12); background: var(--white); cursor: pointer; font-size: 16px; color: var(--gray-600); display: flex; align-items: center; justify-content: center; line-height: 1; transition: background 0.15s; }
+.cal-nav-btn:hover { background: var(--gray-50); }
+.cal-day-headers { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-bottom: 2px; }
+.cal-day-hdr { text-align: center; font-size: 10.5px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; }
+.cal-day { min-height: 72px; border-radius: 6px; padding: 5px 5px 4px; overflow: hidden; min-width: 0; }
+.cal-day:hover { background: var(--gray-50); }
+.cal-day-num { font-size: 12px; font-weight: 500; color: var(--gray-600); margin-bottom: 3px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.cal-day.today .cal-day-num { background: var(--blue-800); color: var(--white); font-weight: 700; }
+.cal-day.other-month .cal-day-num { color: var(--gray-200); }
+.cal-day.is-sunday .cal-day-num { color: var(--red-600); }
+.cal-day.today.is-sunday .cal-day-num { background: var(--red-600); color: var(--white); }
+.cal-pill { font-size: 9.5px; font-weight: 500; padding: 2px 5px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+.cp-green { background: #dcfce7; color: #166534; }
+.cp-blue  { background: var(--blue-100); color: var(--blue-800); }
+.cp-amber { background: var(--amber-50); color: var(--amber-600); }
+.cp-red   { background: var(--red-50); color: var(--red-600); }
+.cal-more { font-size: 9.5px; color: var(--gray-400); padding-left: 2px; }
+.upcoming-list-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 12px; }
+.upc-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); align-items: flex-start; }
+.upc-item:last-child { border-bottom: none; }
+.upc-date { width: 38px; height: 38px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+.upc-day  { font-size: 15px; font-weight: 700; line-height: 1; }
+.upc-mon  { font-size: 9px; font-weight: 600; text-transform: uppercase; margin-top: 1px; }
+.upc-green { background: #dcfce7; color: #166534; }
+.upc-blue  { background: var(--blue-100); color: var(--blue-800); }
+.upc-amber { background: var(--amber-50); color: var(--amber-600); }
+.upc-info { flex: 1; }
+.upc-title { font-size: 12.5px; font-weight: 500; color: var(--gray-900); line-height: 1.35; }
+.upc-meta  { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* ========== FORMACIÓN ========== */
+.fo-summary { display: grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-bottom:1.5rem; }
+.fo-filters { display:flex; gap:6px; margin-bottom:1.25rem; }
+.fo-filter-btn { padding:6px 16px; border-radius:20px; font-size:12px; font-weight:500; border:0.5px solid rgba(0,0,0,0.13); cursor:pointer; background:var(--white); color:var(--gray-600); transition:all 0.15s; }
+.fo-filter-btn.active, .fo-filter-btn:hover { background:var(--blue-800); color:var(--white); border-color:var(--blue-800); }
+.course-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.course-card { background:var(--white); border-radius:10px; border:0.5px solid rgba(0,0,0,0.08); padding:1.1rem 1.2rem; }
+.course-card.completado { opacity:0.72; }
+.course-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.course-title { font-size:13.5px; font-weight:600; color:var(--gray-900); line-height:1.35; }
+.cs-completado { background:#dcfce7; color:#166534; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+.cs-en-curso   { background:var(--blue-100); color:var(--blue-800); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+.cs-pendiente  { background:var(--gray-100); color:var(--gray-600); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+.course-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+.course-cat { font-size:10.5px; color:var(--gray-600); background:var(--gray-50); padding:2px 8px; border-radius:4px; border:0.5px solid rgba(0,0,0,0.07); }
+.course-dur { font-size:10.5px; color:var(--gray-400); }
+.course-bar-track { height:4px; background:rgba(0,0,0,0.07); border-radius:2px; overflow:hidden; margin-bottom:6px; }
+.course-bar-fill { height:100%; border-radius:2px; }
+.bar-completado { background:#1d9e75; }
+.bar-en-curso   { background:var(--blue-500); }
+.bar-pendiente  { background:var(--gray-200); }
+.course-footer { display:flex; justify-content:space-between; align-items:center; }
+.course-pct { font-size:11px; font-weight:600; color:var(--gray-600); }
+.course-farm { font-size:10.5px; color:var(--gray-400); }
+
+/* ========== ANUNCIOS ========== */
+.an-layout { display:grid; grid-template-columns:340px 1fr; gap:1.5rem; align-items:start; }
+.form-textarea { width:100%; padding:8px 12px; border:0.5px solid rgba(0,0,0,0.15); border-radius:7px; font-size:13px; color:var(--gray-900); background:var(--white); outline:none; font-family:inherit; box-sizing:border-box; resize:vertical; min-height:78px; }
+.form-textarea:focus { border-color:var(--blue-400); }
+.an-section-hdr { font-size:13px; font-weight:600; color:var(--gray-900); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.an-count-badge { font-size:10.5px; font-weight:700; padding:2px 9px; border-radius:10px; }
+.an-cnt-green { background:#dcfce7; color:#166534; }
+.an-cnt-gray  { background:var(--gray-100); color:var(--gray-600); }
+.anuncio-card { background:var(--white); border-radius:10px; border:0.5px solid rgba(0,0,0,0.08); padding:1.1rem 1.25rem; margin-bottom:10px; }
+.anuncio-card:last-child { margin-bottom:0; }
+.anuncio-card.vencido { opacity:0.5; }
+.anuncio-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.anuncio-title { font-size:13.5px; font-weight:600; color:var(--gray-900); line-height:1.35; }
+.anuncio-desc { font-size:12.5px; color:var(--gray-600); line-height:1.5; margin-bottom:10px; }
+.anuncio-footer { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.anuncio-expiry { font-size:11px; color:var(--gray-400); margin-left:auto; }
+.anuncio-expiry.soon    { color:var(--amber-600); font-weight:600; }
+.anuncio-expiry.expired { color:var(--red-600); font-weight:500; }
+.pr-info    { background:var(--blue-100); color:var(--blue-800); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; }
+.pr-import  { background:var(--amber-50); color:var(--amber-600); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; }
+.pr-urgente { background:var(--red-50); color:var(--red-600); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; }
+.an-del-btn { width:22px; height:22px; border-radius:50%; border:0.5px solid rgba(0,0,0,0.1); background:transparent; color:var(--gray-400); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0; font-family:inherit; transition:all 0.15s; }
+.an-del-btn:hover { background:var(--red-50); color:var(--red-600); border-color:transparent; }
+.venc-toggle { font-size:12px; font-weight:500; color:var(--blue-600); cursor:pointer; margin:1rem 0 10px; display:flex; align-items:center; gap:6px; user-select:none; }
+.farm-badge-all { background:var(--gray-100); color:var(--gray-600); font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:4px; }
+.farm-badge-f1  { background:var(--blue-100); color:var(--blue-700); font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:4px; }
+.farm-badge-f2  { background:#d1fae5; color:var(--teal-700); font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:4px; }
+
+/* ========== TAREAS PAGE ========== */
+.tareas-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.75rem; }
+.ts-card { background: var(--white); border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.09); padding: 1.1rem 1.4rem; }
+.ts-label { font-size: 10.5px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.ts-value { font-size: 36px; font-weight: 700; line-height: 1; }
+.ts-blue  { color: var(--blue-600); }
+.ts-green { color: var(--green-600); }
+.ts-red   { color: var(--red-600); }
+
+.kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; align-items: start; }
+.kanban-col { background: #f3f4f8; border-radius: 10px; padding: 12px; }
+.kanban-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 2px; }
+.kanban-title { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+.kanban-count { font-size: 11px; font-weight: 600; background: #dddfe6; color: var(--gray-600); padding: 2px 9px; border-radius: 10px; }
+.task-card { background: var(--white); border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.08); padding: 10px 12px; margin-bottom: 8px; }
+.task-card:last-child { margin-bottom: 0; }
+.task-card.en-curso { border-left: 3px solid var(--blue-500); border-radius: 0 8px 8px 0; padding-left: 10px; }
+.task-card.completada { background: var(--white); }
+.task-title { font-size: 13px; font-weight: 600; color: var(--gray-900); line-height: 1.4; margin-bottom: 8px; }
+.task-card.completada .task-title { color: var(--gray-400); font-weight: 500; }
+.task-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.badge-alta  { background: #fde8e8; color: #c0392b; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
+.badge-media { background: #fef3e2; color: #b85c0a; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
+.badge-baja  { background: #e8f8f1; color: #1a7a4a; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
+.badge-done  { background: #e8f8f1; color: #1a7a4a; font-size: 10.5px; font-weight: 500; padding: 2px 7px; border-radius: 4px; }
+.badge-f1 { background: var(--blue-50); color: var(--blue-700); font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+.badge-f2 { background: #d1fae5; color: var(--teal-700); font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+.task-date { font-size: 10.5px; color: var(--gray-400); }
+.task-assignee { font-size: 10.5px; color: var(--gray-600); }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-alta  { background: #e24b4a; }
+.dot-media { background: #ef9f27; }
+.dot-baja  { background: #1d9e75; }
+.task-check { font-size: 11px; color: #1a7a4a; margin-right: 1px; }
+
+/* ========== VENTAS PAGE ========== */
+
+/* VENDOR TABLE */
+.vendor-table-wrap { background: var(--white); border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 2rem; }
+table.vendor-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.vendor-table th {
+  background: var(--blue-800);
+  padding: 9px 14px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.80);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  border-right: 0.5px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+table.vendor-table th:first-child { text-align: left; color: rgba(255,255,255,0.5); border-right: 0.5px solid rgba(255,255,255,0.08); }
+table.vendor-table th:last-child { border-right: none; }
+
+/* group header row */
+tr.grp-header td {
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 0.5px solid rgba(0,0,0,0.06);
+}
+tr.grp-sarai td  { background: #dbeafe; color: var(--blue-700); }
+tr.grp-daniela td { background: #d1fae5; color: var(--teal-700); }
+
+/* vendor row */
+tr.vnd-row td {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.05);
+  text-align: center;
+  vertical-align: middle;
+  color: var(--gray-900);
+}
+tr.vnd-row td:first-child { text-align: left; padding-left: 24px; }
+tr.vnd-row:hover td { background: var(--gray-50); }
+.vnd-name { font-size: 13px; font-weight: 500; color: var(--gray-900); }
+.vnd-sub  { font-size: 10.5px; color: var(--gray-400); margin-top: 1px; }
+.v-val  { font-size: 13px; font-weight: 500; color: var(--gray-900); }
+.v-delta { font-size: 10px; font-weight: 500; margin-top: 2px; }
+
+/* subtotal row */
+tr.sub-row td {
+  padding: 11px 14px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 0.5px solid rgba(0,0,0,0.1);
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+}
+tr.sub-sarai td  { background: var(--blue-50); }
+tr.sub-daniela td { background: #f0fdf4; }
+tr.sub-row td:first-child { text-align: left; }
+tr.sub-row .sub-name { font-size: 12.5px; font-weight: 700; }
+tr.sub-sarai  .sub-name { color: var(--blue-800); }
+tr.sub-daniela .sub-name { color: var(--teal-700); }
+tr.sub-row .v-val { font-weight: 700; font-size: 13px; }
+tr.sub-sarai  .v-val { color: var(--blue-800); }
+tr.sub-daniela .v-val { color: var(--teal-700); }
+
+/* grand total row */
+tr.grand-total td {
+  padding: 12px 14px;
+  background: var(--blue-800);
+  text-align: center;
+  vertical-align: middle;
+}
+tr.grand-total td:first-child { text-align: left; }
+tr.grand-total .gt-name { font-size: 13px; font-weight: 700; color: var(--white); }
+tr.grand-total .gt-sub  { font-size: 10px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+tr.grand-total .v-val   { font-size: 14px; font-weight: 700; color: var(--white); }
+tr.grand-total .v-delta { color: rgba(255,255,255,0.65); }
+
+/* CHARTS SECTION */
+.charts-outer { }
+.chart-col-headers {
+  display: grid;
+  grid-template-columns: 84px repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+.chart-col-hdr {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 0;
+}
+.chart-row {
+  display: grid;
+  grid-template-columns: 84px repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.chart-row:last-child { margin-bottom: 0; }
+.chart-row-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 8px 6px;
+  line-height: 1.4;
+}
+.crl-sarai  { background: var(--blue-50);  color: var(--blue-700); border: 0.5px solid var(--blue-100); }
+.crl-daniela { background: var(--teal-50); color: var(--teal-700); border: 0.5px solid #a7f3d0; }
+.crl-total  { background: var(--blue-800); color: var(--white); }
+.chart-card {
+  background: var(--white);
+  border-radius: 10px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  padding: 10px 12px;
+}
+.chart-card-inner { position: relative; height: 150px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-logo">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="2" width="6" height="16" rx="1.5" fill="#1565c0"/>
+        <rect x="2" y="7" width="16" height="6" rx="1.5" fill="#1565c0"/>
+      </svg>
+    </div>
+    <div class="nav-brand-text">
+      <span class="nav-brand-name">Farmacias Cruz de Santiago</span>
+      <span class="nav-brand-sub">Control de Gestión</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link active" href="#" data-page="inicio">Inicio</a>
+    <a class="nav-link" href="#" data-page="ventas">Ventas</a>
+    <a class="nav-link" href="#" data-page="tareas">Tareas</a>
+    <a class="nav-link" href="#" data-page="formacion">Formación</a>
+    <a class="nav-link" href="#" data-page="anuncios">Anuncios</a>
+    <a class="nav-link" href="#" data-page="calendario">Calendario</a>
+    <a class="nav-link" href="#" data-page="directorio">Directorio</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-date" id="nav-date"></span>
+    <div class="nav-avatar">FS</div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ======================================================== -->
+<!-- PÁGINA INICIO                                            -->
+<!-- ======================================================== -->
+<div id="page-inicio" class="page active">
+  <div class="page-header">
+    <h1>Resumen de la semana</h1>
+    <p id="week-range">Semana pasada · cargando…</p>
+  </div>
+
+  <div class="metrics-section">
+    <div class="section-label">Rendimiento por farmacia</div>
+    <div class="col-headers">
+      <div class="col-hdr person-hdr">Farmacia</div>
+      <div class="col-hdr">Ticket promedio</div>
+      <div class="col-hdr">N° tickets</div>
+      <div class="col-hdr">SKUs / ticket</div>
+      <div class="col-hdr">Tareas pend.</div>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-row">
+        <div class="person-cell"><div class="person-name">Farmacia Sarai</div><div class="person-role">Sucursal</div></div>
+        <div class="metric-cell"><div class="metric-value">$4.882</div><div class="metric-delta delta-up">↑ 2,1%</div></div>
+        <div class="metric-cell"><div class="metric-value">64</div><div class="metric-delta delta-up">↑ 6,7%</div></div>
+        <div class="metric-cell"><div class="metric-value">3,2</div><div class="metric-delta delta-neu">= igual</div></div>
+        <div class="metric-cell"><div class="task-count task-med">5</div></div>
+      </div>
+      <div class="metric-row">
+        <div class="person-cell"><div class="person-name">Farmacia Daniela</div><div class="person-role">Sucursal</div></div>
+        <div class="metric-cell"><div class="metric-value">$4.424</div><div class="metric-delta delta-down">↓ 1,4%</div></div>
+        <div class="metric-cell"><div class="metric-value">65</div><div class="metric-delta delta-up">↑ 7,4%</div></div>
+        <div class="metric-cell"><div class="metric-value">2,9</div><div class="metric-delta delta-down">↓ 0,1</div></div>
+        <div class="metric-cell"><div class="task-count task-low">3</div></div>
+      </div>
+      <div class="metric-row total-row">
+        <div class="person-cell"><div class="person-name">Total</div><div class="person-role">Ambas farmacias</div></div>
+        <div class="metric-cell"><div class="metric-value">$4.651</div><div class="metric-delta delta-up">↑ 0,5%</div></div>
+        <div class="metric-cell"><div class="metric-value">129</div><div class="metric-delta delta-up">↑ 7,1%</div></div>
+        <div class="metric-cell"><div class="metric-value">3,1</div><div class="metric-delta delta-neu">= igual</div></div>
+        <div class="metric-cell"><div class="task-count task-med">8</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES BY PERIOD TABLE -->
+  <div class="metrics-section">
+    <div class="section-label">Ventas por período</div>
+    <div class="sales-col-headers">
+      <div class="col-hdr person-hdr">Farmacia</div>
+      <div class="col-hdr">Ventas semana</div>
+      <div class="col-hdr">Ventas mes (acum.)</div>
+      <div class="col-hdr">Ventas año (acum.)</div>
+    </div>
+    <div class="sales-grid">
+      <div class="metric-row">
+        <div class="person-cell"><div class="person-name">Farmacia Sarai</div><div class="person-role">Sucursal</div></div>
+        <div class="metric-cell"><div class="metric-value">$312.400</div><div class="metric-delta delta-up">↑ 8,3%</div></div>
+        <div class="metric-cell"><div class="metric-value">$1.124.800</div><div class="metric-delta delta-up">↑ 6,1%</div></div>
+        <div class="metric-cell"><div class="metric-value">$5.842.000</div><div class="metric-delta delta-up">↑ 12,4%</div></div>
+      </div>
+      <div class="metric-row">
+        <div class="person-cell"><div class="person-name">Farmacia Daniela</div><div class="person-role">Sucursal</div></div>
+        <div class="metric-cell"><div class="metric-value">$287.600</div><div class="metric-delta delta-up">↑ 5,1%</div></div>
+        <div class="metric-cell"><div class="metric-value">$987.400</div><div class="metric-delta delta-up">↑ 3,8%</div></div>
+        <div class="metric-cell"><div class="metric-value">$4.980.000</div><div class="metric-delta delta-up">↑ 9,7%</div></div>
+      </div>
+      <div class="metric-row total-row">
+        <div class="person-cell"><div class="person-name">Total</div><div class="person-role">Ambas farmacias</div></div>
+        <div class="metric-cell"><div class="metric-value">$600.000</div><div class="metric-delta delta-up">↑ 6,7%</div></div>
+        <div class="metric-cell"><div class="metric-value">$2.112.200</div><div class="metric-delta delta-up">↑ 5,0%</div></div>
+        <div class="metric-cell"><div class="metric-value">$10.822.000</div><div class="metric-delta delta-up">↑ 11,1%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Novedades</div>
+  <div class="drawers-row">
+    <div class="drawer">
+      <div class="drawer-head">
+        <div class="drawer-title"><div class="drawer-icon di-alert">🔔</div>Alertas</div>
+        <span class="drawer-count ct-alert">3</span>
+      </div>
+      <div class="drawer-body">
+        <div class="d-item"><div class="d-dot dd-alert"></div><div class="d-content"><div class="d-title">Stock crítico — Paracetamol 500mg</div><div class="d-desc">Quedan 18 unidades. Punto de reorden alcanzado.</div><div class="d-meta">Hoy · Inventario</div></div></div>
+        <div class="d-item"><div class="d-dot dd-warn"></div><div class="d-content"><div class="d-title">Vencimiento próximo — Lote B-2241</div><div class="d-desc">14 unidades vencen el 30 de junio. Revisar rotación.</div><div class="d-meta">Ayer · Bodega</div></div></div>
+        <div class="d-item"><div class="d-dot dd-warn"></div><div class="d-content"><div class="d-title">Cierre de caja con diferencia</div><div class="d-desc">Diferencia de $2.300 en turno tarde del miércoles.</div><div class="d-meta">Mié 21 may · Caja</div></div></div>
+      </div>
+    </div>
+    <div class="drawer">
+      <div class="drawer-head">
+        <div class="drawer-title"><div class="drawer-icon di-anun">📢</div>Anuncios</div>
+        <span class="drawer-count ct-anun">2</span>
+      </div>
+      <div class="drawer-body">
+        <div class="d-item"><div class="d-dot dd-blue"></div><div class="d-content"><div class="d-title">Nuevo protocolo de dispensación</div><div class="d-desc">Entra en vigencia el 1 de junio. Revisar documento adjunto en Formación.</div><div class="d-meta">23 may · Dirección</div></div></div>
+        <div class="d-item"><div class="d-dot dd-blue"></div><div class="d-content"><div class="d-title">Bonificación por meta Q2</div><div class="d-desc">Se alcanzó el 96% de la meta mensual. Bono proporcional en liquidación de junio.</div><div class="d-meta">22 may · RRHH</div></div></div>
+      </div>
+    </div>
+    <div class="drawer">
+      <div class="drawer-head">
+        <div class="drawer-title"><div class="drawer-icon di-event">📅</div>Eventos</div>
+        <span class="drawer-count ct-event">3</span>
+      </div>
+      <div class="drawer-body">
+        <div class="d-item"><div class="evt-date"><div class="evt-day">27</div><div class="evt-month">may</div></div><div class="d-content"><div class="d-title">Inventario mensual</div><div class="d-desc">Conteo físico completo. Llegada 8:00 hrs.</div><div class="d-meta">Mañana · Toda la sucursal</div></div></div>
+        <div class="d-item"><div class="evt-date"><div class="evt-day">2</div><div class="evt-month">jun</div></div><div class="d-content"><div class="d-title">Capacitación nuevos fármacos</div><div class="d-desc">Sesión online — plataforma Formación intranet.</div><div class="d-meta">10:00 – 12:00 · Ambas farmacias</div></div></div>
+        <div class="d-item"><div class="evt-date"><div class="evt-day">10</div><div class="evt-month">jun</div></div><div class="d-content"><div class="d-title">Reunión de gestión Q2</div><div class="d-desc">Revisión de resultados y planificación Q3.</div><div class="d-meta">15:00 · Sala de reuniones</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- PÁGINA VENTAS                                            -->
+<!-- ======================================================== -->
+<div id="page-ventas" class="page">
+  <div class="page-header">
+    <h1>Ventas</h1>
+    <p id="week-range-v">Semana pasada · cargando…</p>
+  </div>
+
+  <!-- VENDOR TABLE -->
+  <div class="section-label">Rendimiento por vendedor</div>
+  <div class="vendor-table-wrap">
+    <table class="vendor-table">
+      <thead>
+        <tr>
+          <th>Vendedor</th>
+          <th>Ventas semana</th>
+          <th>Ticket promedio</th>
+          <th>N° tickets</th>
+          <th>SKUs / ticket</th>
+          <th>Tareas pend.</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- GROUP: FARMACIA SARAI -->
+        <tr class="grp-header grp-sarai"><td colspan="6">Farmacia Sarai</td></tr>
+
+        <tr class="vnd-row">
+          <td><div class="vnd-name">Carmen M.</div><div class="vnd-sub">Vendedora</div></td>
+          <td><div class="v-val">$128.000</div><div class="v-delta delta-up">↑ 9,4%</div></td>
+          <td><div class="v-val">$5.120</div><div class="v-delta delta-up">↑ 3,2%</div></td>
+          <td><div class="v-val">25</div><div class="v-delta delta-up">↑ 6,4%</div></td>
+          <td><div class="v-val">3,4</div><div class="v-delta delta-neu">= igual</div></td>
+          <td><div class="task-count task-med">2</div></td>
+        </tr>
+        <tr class="vnd-row">
+          <td><div class="vnd-name">Pedro R.</div><div class="vnd-sub">Vendedor</div></td>
+          <td><div class="v-val">$104.400</div><div class="v-delta delta-up">↑ 7,1%</div></td>
+          <td><div class="v-val">$4.745</div><div class="v-delta delta-up">↑ 1,2%</div></td>
+          <td><div class="v-val">22</div><div class="v-delta delta-up">↑ 8,3%</div></td>
+          <td><div class="v-val">3,1</div><div class="v-delta delta-down">↓ 0,2</div></td>
+          <td><div class="task-count task-med">2</div></td>
+        </tr>
+        <tr class="vnd-row">
+          <td><div class="vnd-name">Rosa V.</div><div class="vnd-sub">Vendedora</div></td>
+          <td><div class="v-val">$80.000</div><div class="v-delta delta-up">↑ 8,5%</div></td>
+          <td><div class="v-val">$4.706</div><div class="v-delta delta-down">↓ 1,8%</div></td>
+          <td><div class="v-val">17</div><div class="v-delta delta-up">↑ 6,3%</div></td>
+          <td><div class="v-val">2,9</div><div class="v-delta delta-up">↑ 0,1</div></td>
+          <td><div class="task-count task-low">1</div></td>
+        </tr>
+        <tr class="sub-row sub-sarai">
+          <td><div class="sub-name">Total Farmacia Sarai</div></td>
+          <td><div class="v-val">$312.400</div><div class="v-delta delta-up">↑ 8,3%</div></td>
+          <td><div class="v-val">$4.882</div><div class="v-delta delta-up">↑ 2,1%</div></td>
+          <td><div class="v-val">64</div><div class="v-delta delta-up">↑ 6,7%</div></td>
+          <td><div class="v-val">3,2</div><div class="v-delta delta-neu">= igual</div></td>
+          <td><div class="task-count task-med">5</div></td>
+        </tr>
+
+        <!-- GROUP: FARMACIA DANIELA -->
+        <tr class="grp-header grp-daniela"><td colspan="6">Farmacia Daniela</td></tr>
+
+        <tr class="vnd-row">
+          <td><div class="vnd-name">Luis G.</div><div class="vnd-sub">Vendedor</div></td>
+          <td><div class="v-val">$112.000</div><div class="v-delta delta-up">↑ 6,3%</div></td>
+          <td><div class="v-val">$4.870</div><div class="v-delta delta-up">↑ 2,1%</div></td>
+          <td><div class="v-val">23</div><div class="v-delta delta-up">↑ 4,3%</div></td>
+          <td><div class="v-val">3,1</div><div class="v-delta delta-up">↑ 0,2</div></td>
+          <td><div class="task-count task-low">1</div></td>
+        </tr>
+        <tr class="vnd-row">
+          <td><div class="vnd-name">Ana P.</div><div class="vnd-sub">Vendedora</div></td>
+          <td><div class="v-val">$98.600</div><div class="v-delta delta-up">↑ 4,2%</div></td>
+          <td><div class="v-val">$4.482</div><div class="v-delta delta-down">↓ 2,7%</div></td>
+          <td><div class="v-val">22</div><div class="v-delta delta-up">↑ 9,1%</div></td>
+          <td><div class="v-val">2,8</div><div class="v-delta delta-down">↓ 0,3</div></td>
+          <td><div class="task-count task-low">1</div></td>
+        </tr>
+        <tr class="vnd-row">
+          <td><div class="vnd-name">Jorge S.</div><div class="vnd-sub">Vendedor</div></td>
+          <td><div class="v-val">$77.000</div><div class="v-delta delta-up">↑ 4,6%</div></td>
+          <td><div class="v-val">$3.850</div><div class="v-delta delta-down">↓ 1,2%</div></td>
+          <td><div class="v-val">20</div><div class="v-delta delta-up">↑ 7,9%</div></td>
+          <td><div class="v-val">2,7</div><div class="v-delta delta-down">↓ 0,1</div></td>
+          <td><div class="task-count task-low">1</div></td>
+        </tr>
+        <tr class="sub-row sub-daniela">
+          <td><div class="sub-name">Total Farmacia Daniela</div></td>
+          <td><div class="v-val">$287.600</div><div class="v-delta delta-up">↑ 5,1%</div></td>
+          <td><div class="v-val">$4.424</div><div class="v-delta delta-down">↓ 1,4%</div></td>
+          <td><div class="v-val">65</div><div class="v-delta delta-up">↑ 7,4%</div></td>
+          <td><div class="v-val">2,9</div><div class="v-delta delta-down">↓ 0,1</div></td>
+          <td><div class="task-count task-low">3</div></td>
+        </tr>
+
+        <!-- GRAND TOTAL -->
+        <tr class="grand-total">
+          <td><div class="gt-name">Total general</div><div class="gt-sub">Ambas farmacias</div></td>
+          <td><div class="v-val">$600.000</div><div class="v-delta delta-up">↑ 6,7%</div></td>
+          <td><div class="v-val">$4.651</div><div class="v-delta delta-up">↑ 0,5%</div></td>
+          <td><div class="v-val">129</div><div class="v-delta delta-up">↑ 7,1%</div></td>
+          <td><div class="v-val">3,1</div><div class="v-delta delta-neu">= igual</div></td>
+          <td><div class="task-count task-med" style="background:rgba(255,255,255,0.15);color:#fff;">8</div></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CHARTS SECTION -->
+  <div class="section-gap">
+    <div class="section-label">Evolución semanal — ventas diarias · lun 19 a dom 25 may</div>
+  </div>
+
+  <div class="charts-outer">
+    <div class="chart-col-headers">
+      <div></div>
+      <div class="chart-col-hdr">Ventas diarias ($)</div>
+      <div class="chart-col-hdr">N° tickets</div>
+      <div class="chart-col-hdr">Ticket promedio ($)</div>
+    </div>
+
+    <!-- ROW 1: FARMACIA SARAI -->
+    <div class="chart-row">
+      <div class="chart-row-label crl-sarai">Farmacia<br>Sarai</div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="cs-v" role="img" aria-label="Ventas diarias Farmacia Sarai semana pasada">Ventas Sarai: lun $42k, mar $48k, mié $52k, jue $58k, vie $62k, sáb $38k, dom $12k.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="cs-t" role="img" aria-label="Número de tickets Farmacia Sarai semana pasada">Tickets Sarai: lun 8, mar 9, mié 10, jue 12, vie 13, sáb 8, dom 4.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="cs-a" role="img" aria-label="Ticket promedio Farmacia Sarai semana pasada">Promedio Sarai: lun $5.250, mar $5.333, mié $5.200, jue $4.833, vie $4.769, sáb $4.800, dom $3.000.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: FARMACIA DANIELA -->
+    <div class="chart-row">
+      <div class="chart-row-label crl-daniela">Farmacia<br>Daniela</div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="cd-v" role="img" aria-label="Ventas diarias Farmacia Daniela semana pasada">Ventas Daniela: lun $38k, mar $42k, mié $46k, jue $52k, vie $56k, sáb $40k, dom $14k.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="cd-t" role="img" aria-label="Número de tickets Farmacia Daniela semana pasada">Tickets Daniela: lun 8, mar 9, mié 10, jue 11, vie 14, sáb 9, dom 4.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="cd-a" role="img" aria-label="Ticket promedio Farmacia Daniela semana pasada">Promedio Daniela: lun $4.750, mar $4.667, mié $4.600, jue $4.727, vie $4.000, sáb $4.444, dom $3.400.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: TOTAL -->
+    <div class="chart-row">
+      <div class="chart-row-label crl-total">Total<br>general</div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="ct-v" role="img" aria-label="Ventas diarias totales semana pasada">Ventas total: lun $80k, mar $90k, mié $98k, jue $110k, vie $118k, sáb $78k, dom $26k.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="ct-t" role="img" aria-label="Número de tickets totales semana pasada">Tickets total: lun 16, mar 18, mié 20, jue 23, vie 27, sáb 17, dom 8.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-inner">
+          <canvas id="ct-a" role="img" aria-label="Ticket promedio total semana pasada">Promedio total: lun $5.000, mar $5.000, mié $4.900, jue $4.783, vie $4.370, sáb $4.612, dom $3.200.</canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Other pages (placeholders) -->
+<div id="page-tareas" class="page">
+  <div class="page-header">
+    <h1 style="font-size:22px;font-weight:700;color:var(--blue-700);">Gestión de tareas</h1>
+    <p>AppSheet · Todas las farmacias · Mayo 2026</p>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="tareas-summary">
+    <div class="ts-card"><div class="ts-label">Total tareas</div><div class="ts-value ts-blue">18</div></div>
+    <div class="ts-card"><div class="ts-label">Completadas</div><div class="ts-value ts-green">9</div></div>
+    <div class="ts-card"><div class="ts-label">En curso</div><div class="ts-value ts-blue">4</div></div>
+    <div class="ts-card"><div class="ts-label">Vencidas</div><div class="ts-value ts-red">2</div></div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="kanban">
+
+    <!-- PENDIENTE -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <span class="kanban-title">Pendiente</span>
+        <span class="kanban-count">5</span>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Revisar caducidades nevera</div>
+        <div class="task-meta">
+          <span class="badge-alta"><span class="dot dot-alta"></span>Alta</span>
+          <span class="badge-f2">F2</span>
+          <span class="task-date">26/05</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Actualizar escaparate solar</div>
+        <div class="task-meta">
+          <span class="badge-media"><span class="dot dot-media"></span>Media</span>
+          <span class="badge-f1">F1</span>
+          <span class="task-date">28/05</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Inventario ortopedia</div>
+        <div class="task-meta">
+          <span class="badge-baja"><span class="dot dot-baja"></span>Baja</span>
+          <span class="badge-f1">F1</span>
+          <span class="task-date">30/05</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Control temperatura cámaras</div>
+        <div class="task-meta">
+          <span class="badge-alta"><span class="dot dot-alta"></span>Alta</span>
+          <span class="badge-f1">F1</span>
+          <span class="task-date">27/05</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Actualizar fichas productos</div>
+        <div class="task-meta">
+          <span class="badge-media"><span class="dot dot-media"></span>Media</span>
+          <span class="badge-f2">F2</span>
+          <span class="task-date">31/05</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EN CURSO -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <span class="kanban-title">En curso</span>
+        <span class="kanban-count">4</span>
+      </div>
+
+      <div class="task-card en-curso">
+        <div class="task-title">Formación protocolo OTC v2</div>
+        <div class="task-meta">
+          <span class="badge-alta"><span class="dot dot-alta"></span>Alta</span>
+          <span class="badge-f1">F1</span>
+          <span class="task-assignee">Ana M.</span>
+        </div>
+      </div>
+
+      <div class="task-card en-curso">
+        <div class="task-title">Pedido Almirall — stock bajo</div>
+        <div class="task-meta">
+          <span class="badge-alta"><span class="dot dot-alta"></span>Alta</span>
+          <span class="badge-f2">F2</span>
+          <span class="task-assignee">Luis R.</span>
+        </div>
+      </div>
+
+      <div class="task-card en-curso">
+        <div class="task-title">Reposición lineal dermofarmacia</div>
+        <div class="task-meta">
+          <span class="badge-media"><span class="dot dot-media"></span>Media</span>
+          <span class="badge-f1">F1</span>
+        </div>
+      </div>
+
+      <div class="task-card en-curso">
+        <div class="task-title">Auditoría caja mensual</div>
+        <div class="task-meta">
+          <span class="badge-media"><span class="dot dot-media"></span>Media</span>
+          <span class="badge-f2">F2</span>
+          <span class="task-assignee">Jorge S.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EN REVISIÓN -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <span class="kanban-title">En revisión</span>
+        <span class="kanban-count">2</span>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Protocolo apertura actualizado</div>
+        <div class="task-meta">
+          <span class="badge-media"><span class="dot dot-media"></span>Media</span>
+          <span class="badge-f2">F2</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-title">Informe visita laboratorio</div>
+        <div class="task-meta">
+          <span class="badge-baja"><span class="dot dot-baja"></span>Baja</span>
+          <span class="badge-f1">F1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPLETADA -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <span class="kanban-title">Completada</span>
+        <span class="kanban-count">7</span>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Formación Isdin — pre-verano</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f1">F1</span>
+        </div>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Revisión cámara frigorífica</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f2">F2</span>
+        </div>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Onboarding Carmen L.</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f1">F1</span>
+        </div>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Pedido Laboratorios Bayer</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f2">F2</span>
+        </div>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Actualización precios mayo</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f1">F1</span>
+        </div>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Limpieza zona preparación</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f2">F2</span>
+        </div>
+      </div>
+
+      <div class="task-card completada">
+        <div class="task-title">Renovación contrato seguridad</div>
+        <div class="task-meta">
+          <span class="badge-done">✓ Completada</span>
+          <span class="badge-f1">F1</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- ======================================================== -->
+<!-- PÁGINA FORMACIÓN                                         -->
+<!-- ======================================================== -->
+<div id="page-formacion" class="page">
+  <div class="page-header">
+    <h1>Formación</h1>
+    <p>Cursos y capacitaciones · Farmacias Cruz de Santiago</p>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div class="fo-summary">
+    <div class="ts-card"><div class="ts-label">Total cursos</div><div class="ts-value ts-blue">9</div></div>
+    <div class="ts-card"><div class="ts-label">Completados</div><div class="ts-value ts-green">3</div></div>
+    <div class="ts-card"><div class="ts-label">En curso</div><div class="ts-value ts-blue">4</div></div>
+    <div class="ts-card"><div class="ts-label">Pendientes</div><div class="ts-value" style="color:var(--gray-400)">2</div></div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="fo-filters">
+    <button class="fo-filter-btn active" onclick="foFilter('all', this)">Todos</button>
+    <button class="fo-filter-btn" onclick="foFilter('completado', this)">Completados</button>
+    <button class="fo-filter-btn" onclick="foFilter('en-curso', this)">En curso</button>
+    <button class="fo-filter-btn" onclick="foFilter('pendiente', this)">Pendientes</button>
+  </div>
+
+  <!-- COURSE GRID -->
+  <div class="course-grid" id="course-grid">
+
+    <div class="course-card" data-status="completado">
+      <div class="course-top">
+        <div class="course-title">Protocolo de dispensación OTC</div>
+        <span class="cs-completado">Completado</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Normativa</span>
+        <span class="course-dur">2h 30min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-completado" style="width:100%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">100%</span>
+        <span class="course-farm">Ambas farmacias</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="completado">
+      <div class="course-top">
+        <div class="course-title">Formación Isdin — Pre-verano 2026</div>
+        <span class="cs-completado">Completado</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Producto</span>
+        <span class="course-dur">1h 45min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-completado" style="width:100%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">100%</span>
+        <span class="course-farm">F1 — Sarai</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="completado">
+      <div class="course-top">
+        <div class="course-title">Atención al cliente y fidelización</div>
+        <span class="cs-completado">Completado</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Ventas</span>
+        <span class="course-dur">3h 00min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-completado" style="width:100%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">100%</span>
+        <span class="course-farm">Ambas farmacias</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="en-curso">
+      <div class="course-top">
+        <div class="course-title">Nuevos fármacos antihipertensivos</div>
+        <span class="cs-en-curso">En curso</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Farmacología</span>
+        <span class="course-dur">4h 00min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-en-curso" style="width:65%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">65%</span>
+        <span class="course-farm">Ambas farmacias</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="en-curso">
+      <div class="course-top">
+        <div class="course-title">Manejo de cámara frigorífica</div>
+        <span class="cs-en-curso">En curso</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Operaciones</span>
+        <span class="course-dur">1h 00min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-en-curso" style="width:40%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">40%</span>
+        <span class="course-farm">F2 — Daniela</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="en-curso">
+      <div class="course-top">
+        <div class="course-title">Dermofarmacia y cosmética avanzada</div>
+        <span class="cs-en-curso">En curso</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Producto</span>
+        <span class="course-dur">2h 15min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-en-curso" style="width:80%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">80%</span>
+        <span class="course-farm">F1 — Sarai</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="en-curso">
+      <div class="course-top">
+        <div class="course-title">Prevención de errores de dispensación</div>
+        <span class="cs-en-curso">En curso</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Normativa</span>
+        <span class="course-dur">2h 30min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-en-curso" style="width:55%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">55%</span>
+        <span class="course-farm">Ambas farmacias</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="pendiente">
+      <div class="course-top">
+        <div class="course-title">Primeros auxilios en farmacia</div>
+        <span class="cs-pendiente">Pendiente</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Salud</span>
+        <span class="course-dur">3h 30min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-pendiente" style="width:0%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">0%</span>
+        <span class="course-farm">Ambas farmacias</span>
+      </div>
+    </div>
+
+    <div class="course-card" data-status="pendiente">
+      <div class="course-top">
+        <div class="course-title">Gestión de inventario con sistema</div>
+        <span class="cs-pendiente">Pendiente</span>
+      </div>
+      <div class="course-meta">
+        <span class="course-cat">Operaciones</span>
+        <span class="course-dur">1h 30min</span>
+      </div>
+      <div class="course-bar-track"><div class="course-bar-fill bar-pendiente" style="width:0%"></div></div>
+      <div class="course-footer">
+        <span class="course-pct">0%</span>
+        <span class="course-farm">F2 — Daniela</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- PÁGINA ANUNCIOS                                          -->
+<!-- ======================================================== -->
+<div id="page-anuncios" class="page">
+  <div class="page-header">
+    <h1>Anuncios</h1>
+    <p>Comunicaciones internas · Farmacias Cruz de Santiago</p>
+  </div>
+
+  <div class="an-layout">
+
+    <!-- FORM: CREATE ANNOUNCEMENT -->
+    <div class="cal-card">
+      <div class="form-section-title">Nuevo anuncio</div>
+
+      <div class="form-field">
+        <label class="form-label">Título</label>
+        <input class="form-input" type="text" id="an-title" placeholder="Ej. Cambio en protocolo de apertura…">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-textarea" id="an-desc" placeholder="Detalle del anuncio…" rows="4"></textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">Fecha de vencimiento</label>
+          <input class="form-input" type="date" id="an-exp">
+        </div>
+        <div>
+          <label class="form-label">Farmacia</label>
+          <select class="form-input" id="an-farm">
+            <option value="all">Ambas farmacias</option>
+            <option value="f1">Farmacia Sarai (F1)</option>
+            <option value="f2">Farmacia Daniela (F2)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Prioridad</label>
+        <div class="cat-selector">
+          <label class="cat-opt"><input type="radio" name="an-prio" value="info" checked><span class="cat-lbl cl-blue">Informativo</span></label>
+          <label class="cat-opt"><input type="radio" name="an-prio" value="importante"><span class="cat-lbl cl-amber">Importante</span></label>
+          <label class="cat-opt"><input type="radio" name="an-prio" value="urgente"><span class="cat-lbl cl-red">Urgente</span></label>
+        </div>
+      </div>
+
+      <div class="ev-validation" id="an-validation">Completa el título, descripción y fecha de vencimiento.</div>
+      <button class="ev-submit-btn" id="an-submit-btn" onclick="addAnuncio()">+ Publicar anuncio</button>
+    </div>
+
+    <!-- ANNOUNCEMENTS LIST -->
+    <div>
+
+      <!-- VIGENTES -->
+      <div class="an-section-hdr">
+        Anuncios vigentes
+        <span class="an-count-badge an-cnt-green" id="an-cnt-vig">0</span>
+      </div>
+      <div id="an-list-vig"></div>
+
+      <!-- VENCIDOS (collapsible) -->
+      <div class="venc-toggle" onclick="toggleVencidos(this)">
+        <span id="venc-arrow">▸</span> Ver anuncios vencidos
+        <span class="an-count-badge an-cnt-gray" id="an-cnt-venc">0</span>
+      </div>
+      <div id="an-list-venc" style="display:none"></div>
+
+    </div>
+  </div>
+</div>
+<div id="page-calendario" class="page">
+  <div class="page-header">
+    <h1>Calendario</h1>
+    <p>Gestión de eventos · Todas las farmacias</p>
+  </div>
+  <div class="cal-layout">
+
+    <!-- FORM -->
+    <div class="cal-card">
+      <div class="form-section-title">Agregar evento</div>
+
+      <div class="form-field">
+        <label class="form-label">Título del evento</label>
+        <input class="form-input" type="text" id="ev-title" placeholder="Ej. Inventario mensual, Capacitación…">
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">Fecha</label>
+          <input class="form-input" type="date" id="ev-date">
+        </div>
+        <div>
+          <label class="form-label">Hora (opcional)</label>
+          <input class="form-input" type="time" id="ev-time">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Farmacia</label>
+        <select class="form-input" id="ev-farmacia">
+          <option value="Ambas">Ambas farmacias</option>
+          <option value="F1 — Sarai">Farmacia Sarai (F1)</option>
+          <option value="F2 — Daniela">Farmacia Daniela (F2)</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Categoría</label>
+        <div class="cat-selector">
+          <label class="cat-opt"><input type="radio" name="ev-cat" value="green" checked><span class="cat-lbl cl-green">Inventario</span></label>
+          <label class="cat-opt"><input type="radio" name="ev-cat" value="blue"><span class="cat-lbl cl-blue">Reunión / Formación</span></label>
+          <label class="cat-opt"><input type="radio" name="ev-cat" value="amber"><span class="cat-lbl cl-amber">Tarea</span></label>
+          <label class="cat-opt"><input type="radio" name="ev-cat" value="red"><span class="cat-lbl cl-red">Urgente</span></label>
+        </div>
+      </div>
+
+      <div class="ev-validation" id="ev-validation">Por favor completa el título y la fecha.</div>
+      <button class="ev-submit-btn" id="ev-submit-btn" onclick="addCalEvent()">+ Agregar evento</button>
+    </div>
+
+    <!-- UPCOMING EVENTS -->
+    <div class="cal-card">
+      <div class="upcoming-list-title">Próximos eventos</div>
+      <div id="upcoming-list"></div>
+    </div>
+
+  </div>
+</div>
+<div id="page-directorio" class="page">
+  <div class="page-header">
+    <h1>Directorio</h1>
+    <p>Farmacias Cruz de Santiago · 8 colaboradores</p>
+  </div>
+
+  <div class="dir-toolbar">
+    <input class="dir-search" type="text" placeholder="Buscar por nombre o cargo…" id="dir-search-input">
+    <div class="dir-filters">
+      <button class="dir-filter-btn active" onclick="dirFilter('all', this)">Todas</button>
+      <button class="dir-filter-btn" onclick="dirFilter('f1', this)">Farmacia Sarai</button>
+      <button class="dir-filter-btn" onclick="dirFilter('f2', this)">Farmacia Daniela</button>
+    </div>
+  </div>
+
+  <!-- FARMACIA SARAI -->
+  <div class="dir-section-hdr" data-farmacia="f1">Farmacia Sarai <span class="dir-farmacia-tag dir-tag-f1">F1</span></div>
+  <div class="dir-grid" id="dir-grid-f1">
+
+    <div class="dir-card" data-farmacia="f1" data-name="sarai lópez directora">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:var(--blue-800);color:#fff;">SL</div>
+        <div><div class="dir-name">Sarai López</div><div class="dir-role">Directora F1</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 9345 6789</div>
+      <div class="dir-row"><span class="dir-icon">@</span>sarai.l@farmaciascruz.cl</div>
+    </div>
+
+    <div class="dir-card" data-farmacia="f1" data-name="carmen morales vendedora">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:var(--blue-100);color:var(--blue-800);">CM</div>
+        <div><div class="dir-name">Carmen Morales</div><div class="dir-role">Vendedora</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 8234 5678</div>
+      <div class="dir-row"><span class="dir-icon">@</span>carmen.m@farmaciascruz.cl</div>
+    </div>
+
+    <div class="dir-card" data-farmacia="f1" data-name="pedro ramírez vendedor">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:#bfdbfe;color:var(--blue-900);">PR</div>
+        <div><div class="dir-name">Pedro Ramírez</div><div class="dir-role">Vendedor</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 7123 4567</div>
+      <div class="dir-row"><span class="dir-icon">@</span>pedro.r@farmaciascruz.cl</div>
+    </div>
+
+    <div class="dir-card" data-farmacia="f1" data-name="rosa vásquez vendedora">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:var(--blue-50);color:var(--blue-700);">RV</div>
+        <div><div class="dir-name">Rosa Vásquez</div><div class="dir-role">Vendedora</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 6012 3456</div>
+      <div class="dir-row"><span class="dir-icon">@</span>rosa.v@farmaciascruz.cl</div>
+    </div>
+
+  </div>
+
+  <!-- FARMACIA DANIELA -->
+  <div class="dir-section-hdr" data-farmacia="f2">Farmacia Daniela <span class="dir-farmacia-tag dir-tag-f2">F2</span></div>
+  <div class="dir-grid" id="dir-grid-f2">
+
+    <div class="dir-card" data-farmacia="f2" data-name="daniela reyes directora">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:var(--teal-600);color:#fff;">DR</div>
+        <div><div class="dir-name">Daniela Reyes</div><div class="dir-role">Directora F2</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 9789 0123</div>
+      <div class="dir-row"><span class="dir-icon">@</span>daniela.r@farmaciascruz.cl</div>
+    </div>
+
+    <div class="dir-card" data-farmacia="f2" data-name="luis gonzález vendedor">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:#a7f3d0;color:var(--teal-700);">LG</div>
+        <div><div class="dir-name">Luis González</div><div class="dir-role">Vendedor</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 8456 7890</div>
+      <div class="dir-row"><span class="dir-icon">@</span>luis.g@farmaciascruz.cl</div>
+    </div>
+
+    <div class="dir-card" data-farmacia="f2" data-name="ana pérez vendedora">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:var(--teal-50);color:var(--teal-700);">AP</div>
+        <div><div class="dir-name">Ana Pérez</div><div class="dir-role">Vendedora</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 7567 8901</div>
+      <div class="dir-row"><span class="dir-icon">@</span>ana.p@farmaciascruz.cl</div>
+    </div>
+
+    <div class="dir-card" data-farmacia="f2" data-name="jorge soto vendedor">
+      <div class="dir-card-top">
+        <div class="dir-avatar" style="background:#6ee7b7;color:var(--teal-700);">JS</div>
+        <div><div class="dir-name">Jorge Soto</div><div class="dir-role">Vendedor</div></div>
+      </div>
+      <hr class="dir-divider">
+      <div class="dir-row"><span class="dir-icon">☎</span>+56 9 6678 9012</div>
+      <div class="dir-row"><span class="dir-icon">@</span>jorge.s@farmaciascruz.cl</div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<script>
+const DAYS = ['Lun 19', 'Mar 20', 'Mié 21', 'Jue 22', 'Vie 23', 'Sáb 24', 'Dom 25'];
+
+const DATA = {
+  sarai:   { v: [42000, 48000, 52000, 58000, 62000, 38400, 12000], t: [8, 9, 10, 12, 13, 8, 4], a: [5250, 5333, 5200, 4833, 4769, 4800, 3000] },
+  daniela: { v: [38000, 42000, 46000, 52000, 56000, 40000, 13600], t: [8, 9, 10, 11, 14, 9, 4],  a: [4750, 4667, 4600, 4727, 4000, 4444, 3400] },
+  total:   { v: [80000, 90000, 98000,110000,118000, 78400, 25600], t: [16,18, 20, 23, 27, 17, 8], a: [5000, 5000, 4900, 4783, 4370, 4612, 3200] }
+};
+
+const COLORS = { sarai: '#1976d2', daniela: '#1d9e75', total: '#0d3d7a' };
+
+const tickOpts = { font: { size: 10 }, color: '#888780', autoSkip: false };
+const gridOpts = { color: 'rgba(0,0,0,0.04)' };
+
+function makeBar(id, data, color) {
+  return new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels: DAYS, datasets: [{ data, backgroundColor: color + '99', borderColor: color, borderWidth: 1.5, borderRadius: 3, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toLocaleString('es-CL') } } },
+      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => '$' + (v/1000).toFixed(0) + 'k' }, border: { display: false } } }
+    }
+  });
+}
+
+function makeBarInt(id, data, color) {
+  return new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels: DAYS, datasets: [{ data, backgroundColor: color + '99', borderColor: color, borderWidth: 1.5, borderRadius: 3, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.parsed.y } } },
+      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => v }, border: { display: false } } }
+    }
+  });
+}
+
+function makeLine(id, data, color) {
+  return new Chart(document.getElementById(id), {
+    type: 'line',
+    data: { labels: DAYS, datasets: [{ data, borderColor: color, borderWidth: 2, backgroundColor: color + '18', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: color }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toLocaleString('es-CL') } } },
+      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => '$' + (v/1000).toFixed(1) + 'k' }, border: { display: false } } }
+    }
+  });
+}
+
+let chartsInitialized = false;
+function initCharts() {
+  if (chartsInitialized) return;
+  chartsInitialized = true;
+  makeBar('cs-v',    DATA.sarai.v,   COLORS.sarai);
+  makeBarInt('cs-t', DATA.sarai.t,   COLORS.sarai);
+  makeLine('cs-a',   DATA.sarai.a,   COLORS.sarai);
+  makeBar('cd-v',    DATA.daniela.v, COLORS.daniela);
+  makeBarInt('cd-t', DATA.daniela.t, COLORS.daniela);
+  makeLine('cd-a',   DATA.daniela.a, COLORS.daniela);
+  makeBar('ct-v',    DATA.total.v,   COLORS.total);
+  makeBarInt('ct-t', DATA.total.t,   COLORS.total);
+  makeLine('ct-a',   DATA.total.a,   COLORS.total);
+}
+
+/* ---- DIRECTORIO ---- */
+function dirFilter(flt, btn) {
+  document.querySelectorAll('.dir-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const sections = ['f1','f2'];
+  sections.forEach(f => {
+    const hdr = document.querySelector('.dir-section-hdr[data-farmacia="' + f + '"]');
+    const grid = document.getElementById('dir-grid-' + f);
+    if (flt === 'all' || flt === f) {
+      hdr.style.display = ''; grid.style.display = '';
+    } else {
+      hdr.style.display = 'none'; grid.style.display = 'none';
+    }
+  });
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.id !== 'dir-search-input') return;
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.dir-card').forEach(card => {
+    const match = card.dataset.name && card.dataset.name.includes(q);
+    card.style.display = match ? '' : 'none';
+  });
+});
+
+/* ---- CALENDARIO ---- */
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+const CAL_EVENTS = [
+  { date:'2026-05-27', title:'Inventario mensual', color:'green', time:'08:00', tag:'Ambas' },
+  { date:'2026-05-28', title:'Escaparate solar', color:'amber', time:'', tag:'F1 — Sarai' },
+  { date:'2026-05-30', title:'Inventario ortopedia', color:'amber', time:'', tag:'F1 — Sarai' },
+  { date:'2026-05-31', title:'Actualizar fichas', color:'amber', time:'', tag:'F2 — Daniela' },
+  { date:'2026-06-01', title:'Protocolo dispensación', color:'blue', time:'', tag:'Ambas' },
+  { date:'2026-06-02', title:'Capacitación fármacos', color:'blue', time:'10:00', tag:'Ambas' },
+  { date:'2026-06-10', title:'Reunión gestión Q2', color:'blue', time:'15:00', tag:'Ambas' },
+  { date:'2026-06-15', title:'Visita laboratorio', color:'blue', time:'09:00', tag:'F1 — Sarai' },
+  { date:'2026-06-27', title:'Inventario mensual', color:'green', time:'08:00', tag:'Ambas' },
+  { date:'2026-07-01', title:'Inicio Q3', color:'blue', time:'', tag:'Ambas' },
+];
+
+const CAL_TODAY_STR = '2026-05-26';
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function renderUpcomingList() {
+  const upcoming = CAL_EVENTS
+    .filter(e => e.date >= CAL_TODAY_STR)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const list = document.getElementById('upcoming-list');
+  list.innerHTML = '';
+  if (upcoming.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0;">Sin eventos próximos.</div>';
+    return;
+  }
+  upcoming.forEach(ev => {
+    const dt = new Date(ev.date + 'T12:00:00');
+    const realIdx = CAL_EVENTS.indexOf(ev);
+    const item = document.createElement('div');
+    item.className = 'upc-item';
+    item.style.cssText = 'display:flex;gap:10px;padding:10px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);align-items:flex-start;';
+    item.innerHTML =
+      '<div class="upc-date upc-' + ev.color + '"><div class="upc-day">' + dt.getDate() + '</div><div class="upc-mon">' + MONTHS_ES[dt.getMonth()].substring(0,3) + '</div></div>'
+      + '<div class="upc-info" style="flex:1;"><div class="upc-title">' + ev.title + '</div><div class="upc-meta">' + (ev.time ? ev.time + ' · ' : '') + ev.tag + '</div></div>'
+      + '<button class="upc-delete-btn" onclick="removeCalEvent(' + realIdx + ')" title="Eliminar">×</button>';
+    list.appendChild(item);
+  });
+}
+
+function addCalEvent() {
+  const title   = document.getElementById('ev-title').value.trim();
+  const date    = document.getElementById('ev-date').value;
+  const time    = document.getElementById('ev-time').value;
+  const tag     = document.getElementById('ev-farmacia').value;
+  const color   = document.querySelector('input[name="ev-cat"]:checked').value;
+  const valMsg  = document.getElementById('ev-validation');
+  if (!title || !date) { valMsg.style.display = 'block'; return; }
+  valMsg.style.display = 'none';
+  CAL_EVENTS.push({ date, title, color, time, tag });
+  CAL_EVENTS.sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('ev-title').value = '';
+  document.getElementById('ev-date').value  = '';
+  document.getElementById('ev-time').value  = '';
+  renderUpcomingList();
+  const btn = document.getElementById('ev-submit-btn');
+  btn.textContent = '✓ Evento agregado';
+  btn.style.background = '#166534';
+  setTimeout(() => { btn.textContent = '+ Agregar evento'; btn.style.background = ''; }, 2000);
+}
+
+function removeCalEvent(idx) {
+  CAL_EVENTS.splice(idx, 1);
+  renderUpcomingList();
+}
+
+/* ---- FORMACIÓN FILTER ---- */
+function foFilter(status, btn) {
+  document.querySelectorAll('.fo-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#course-grid .course-card').forEach(card => {
+    card.style.display = (status === 'all' || card.dataset.status === status) ? '' : 'none';
+  });
+}
+
+/* ---- ANUNCIOS ---- */
+const TODAY_STR = '2026-05-26';
+let ANUNCIOS = [
+  { id:1, title:'Nuevo protocolo de dispensación', desc:'Entra en vigencia el 1 de junio. Revisar el documento adjunto en la sección de Formación antes del viernes.', exp:'2026-06-30', farm:'all', prio:'importante' },
+  { id:2, title:'Bonificación por meta Q2', desc:'Se alcanzó el 96% de la meta mensual. Se abonará un bono proporcional en la liquidación de junio a todos los colaboradores.', exp:'2026-06-10', farm:'all', prio:'info' },
+  { id:3, title:'Cierre de caja — turno tarde', desc:'Se detectó diferencia de $2.300 en cierre del miércoles. Recordar procedimiento de cuadre antes de cerrar turno.', exp:'2026-05-31', farm:'f2', prio:'urgente' },
+  { id:4, title:'Actualización lista de precios mayo', desc:'Se actualizó la lista de precios de productos de dermofarmacia. Revisar en el sistema antes de cotizar.', exp:'2026-05-28', farm:'f1', prio:'info' },
+  { id:5, title:'Campaña vacunación antigripal', desc:'Recordar a clientes la disponibilidad de vacuna antigripal. Material punto de venta disponible en bodega.', exp:'2026-04-30', farm:'all', prio:'importante' },
+];
+let _anId = 6;
+
+function farmLabel(f) {
+  if (f === 'all') return '<span class="farm-badge-all">Ambas farmacias</span>';
+  if (f === 'f1')  return '<span class="farm-badge-f1">F1 — Sarai</span>';
+  return '<span class="farm-badge-f2">F2 — Daniela</span>';
+}
+function prioLabel(p) {
+  if (p === 'urgente')   return '<span class="pr-urgente">Urgente</span>';
+  if (p === 'importante') return '<span class="pr-import">Importante</span>';
+  return '<span class="pr-info">Informativo</span>';
+}
+function expiryLabel(exp) {
+  if (exp < TODAY_STR) return '<span class="anuncio-expiry expired">Venció ' + exp + '</span>';
+  const daysLeft = Math.round((new Date(exp + 'T12:00:00') - new Date(TODAY_STR + 'T12:00:00')) / 86400000);
+  if (daysLeft <= 7) return '<span class="anuncio-expiry soon">Vence en ' + daysLeft + ' día' + (daysLeft!==1?'s':'') + '</span>';
+  return '<span class="anuncio-expiry">Vence ' + exp + '</span>';
+}
+
+function renderAnuncios() {
+  const vig   = ANUNCIOS.filter(a => a.exp >= TODAY_STR);
+  const venc  = ANUNCIOS.filter(a => a.exp  < TODAY_STR);
+  document.getElementById('an-cnt-vig').textContent  = vig.length;
+  document.getElementById('an-cnt-venc').textContent = venc.length;
+
+  function renderList(arr, containerId, isVencido) {
+    const el = document.getElementById(containerId);
+    if (arr.length === 0) {
+      el.innerHTML = '<div style="font-size:12.5px;color:var(--gray-400);padding:8px 0 14px;">Sin anuncios.</div>';
+      return;
+    }
+    el.innerHTML = arr.map(a =>
+      '<div class="anuncio-card' + (isVencido ? ' vencido' : '') + '" id="an-card-' + a.id + '">'
+        + '<div class="anuncio-top"><div class="anuncio-title">' + a.title + '</div>'
+        + '<button class="an-del-btn" onclick="removeAnuncio(' + a.id + ')" title="Eliminar">×</button></div>'
+        + '<div class="anuncio-desc">' + a.desc + '</div>'
+        + '<div class="anuncio-footer">' + prioLabel(a.prio) + farmLabel(a.farm) + expiryLabel(a.exp) + '</div>'
+      + '</div>'
+    ).join('');
+  }
+  renderList(vig,  'an-list-vig',  false);
+  renderList(venc, 'an-list-venc', true);
+}
+
+function addAnuncio() {
+  const title = document.getElementById('an-title').value.trim();
+  const desc  = document.getElementById('an-desc').value.trim();
+  const exp   = document.getElementById('an-exp').value;
+  const farm  = document.getElementById('an-farm').value;
+  const prio  = document.querySelector('input[name="an-prio"]:checked').value;
+  const valMsg = document.getElementById('an-validation');
+  if (!title || !desc || !exp) { valMsg.style.display = 'block'; return; }
+  valMsg.style.display = 'none';
+  ANUNCIOS.unshift({ id: _anId++, title, desc, exp, farm, prio });
+  document.getElementById('an-title').value = '';
+  document.getElementById('an-desc').value  = '';
+  document.getElementById('an-exp').value   = '';
+  renderAnuncios();
+  const btn = document.getElementById('an-submit-btn');
+  btn.textContent = '✓ Publicado';
+  btn.style.background = '#166534';
+  setTimeout(() => { btn.textContent = '+ Publicar anuncio'; btn.style.background = ''; }, 2000);
+}
+
+function removeAnuncio(id) {
+  ANUNCIOS = ANUNCIOS.filter(a => a.id !== id);
+  renderAnuncios();
+}
+
+function toggleVencidos(el) {
+  const list = document.getElementById('an-list-venc');
+  const arrow = document.getElementById('venc-arrow');
+  if (list.style.display === 'none') {
+    list.style.display = 'block';
+    arrow.textContent = '▾';
+    el.childNodes[1].textContent = ' Ocultar anuncios vencidos ';
+  } else {
+    list.style.display = 'none';
+    arrow.textContent = '▸';
+    el.childNodes[1].textContent = ' Ver anuncios vencidos ';
+  }
+}
+
+/* TAB NAVIGATION */
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const page = link.dataset.page;
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + page);
+    if (target) {
+      target.classList.add('active');
+      if (page === 'ventas')   initCharts();
+      if (page === 'calendario') renderUpcomingList();
+      if (page === 'anuncios') renderAnuncios();
+    }
+  });
+});
+
+/* DATES */
+const now = new Date();
+document.getElementById('nav-date').textContent = now.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'long' });
+const endLW = new Date(now); endLW.setDate(now.getDate() - now.getDay());
+const startLW = new Date(endLW); startLW.setDate(endLW.getDate() - 6);
+const fmt = d => d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+const rangeStr = 'Semana pasada · ' + fmt(startLW) + ' al ' + fmt(endLW) + ' de ' + endLW.getFullYear();
+document.getElementById('week-range').textContent = rangeStr;
+document.getElementById('week-range-v').textContent = rangeStr;
+</script>
+</body>
+</html>
