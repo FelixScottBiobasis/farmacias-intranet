@@ -1783,8 +1783,8 @@ const now = new Date();
 document.getElementById('nav-date').textContent = now.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'long' });
 const endLW = new Date(now); endLW.setDate(now.getDate() - now.getDay());
 const startLW = new Date(endLW); startLW.setDate(endLW.getDate() - 6);
-const fmt = d => d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
-const rangeStr = 'Semana pasada · ' + fmt(startLW) + ' al ' + fmt(endLW) + ' de ' + endLW.getFullYear();
+const fmtDate = d => d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+const rangeStr = 'Semana pasada · ' + fmtDate(startLW) + ' al ' + fmtDate(endLW) + ' de ' + endLW.getFullYear();
 document.getElementById('week-range').textContent = rangeStr;
 document.getElementById('week-range-v').textContent = rangeStr;
 
