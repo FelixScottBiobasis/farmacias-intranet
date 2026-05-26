@@ -1362,14 +1362,14 @@ tr.grand-total .v-delta { color: rgba(255,255,255,0.65); }
 </main>
 
 <script>
-const DAYS = ['Lun 19', 'Mar 20', 'Mié 21', 'Jue 22', 'Vie 23', 'Sáb 24', 'Dom 25'];
+const DAYS = ['Lun 11','Mar 12','Mié 13','Jue 14','Vie 15','Sáb 16','Dom 17','Lun 18','Mar 19','Mié 20','Jue 21','Vie 22','Sáb 23','Dom 24'];
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbwnp9guA-Rn1pbsnhSLHp4NV86qOYPKsK3HvOZohRUV5YB2uCGbUMiN8I4_YLUxIrPhkg/exec';
 
 let DATA = {
-  sarai:   { v: [42000, 48000, 52000, 58000, 62000, 38400, 12000], t: [8, 9, 10, 12, 13, 8, 4], a: [5250, 5333, 5200, 4833, 4769, 4800, 3000] },
-  daniela: { v: [38000, 42000, 46000, 52000, 56000, 40000, 13600], t: [8, 9, 10, 11, 14, 9, 4],  a: [4750, 4667, 4600, 4727, 4000, 4444, 3400] },
-  total:   { v: [80000, 90000, 98000,110000,118000, 78400, 25600], t: [16,18, 20, 23, 27, 17, 8], a: [5000, 5000, 4900, 4783, 4370, 4612, 3200] }
+  sarai:   { v: [0,890,1863,1014,0,1783,0,2583,1921,1037,1706,2022,1537,0], t: [0,44,54,37,0,35,0,55,45,48,36,40,36,0], a: [0,20,34,27,0,51,0,47,43,22,47,51,43,0] },
+  daniela: { v: [0,0,0,0,0,0,0,0,0,0,0,0,0,0], t: [0,0,0,0,0,0,0,0,0,0,0,0,0,0], a: [0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  total:   { v: [0,890,1863,1014,0,1783,0,2583,1921,1037,1706,2022,1537,0], t: [0,44,54,37,0,35,0,55,45,48,36,40,36,0], a: [0,20,34,27,0,51,0,47,43,22,47,51,43,0] }
 };
 
 const COLORS = { sarai: '#1976d2', daniela: '#1d9e75', total: '#0d3d7a' };
@@ -1428,7 +1428,7 @@ function updateCharts() {
     ['cd-v', DATA.daniela.v], ['cd-t', DATA.daniela.t], ['cd-a', DATA.daniela.a],
     ['ct-v', DATA.total.v],  ['ct-t', DATA.total.t],  ['ct-a', DATA.total.a]
   ];
-  map.forEach(([id, d]) => { if (CHARTS[id]) { CHARTS[id].data.datasets[0].data = d; CHARTS[id].update(); } });
+  map.forEach(([id, d]) => { if (CHARTS[id]) { CHARTS[id].data.labels = DAYS; CHARTS[id].data.datasets[0].data = d; CHARTS[id].update(); } });
 }
 
 /* ---- DIRECTORIO ---- */
