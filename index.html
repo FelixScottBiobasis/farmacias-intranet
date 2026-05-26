@@ -525,22 +525,19 @@ tr.grand-total .v-delta { color: rgba(255,255,255,0.65); }
     <div class="drawer">
       <div class="drawer-head">
         <div class="drawer-title"><div class="drawer-icon di-alert">🔔</div>Alertas</div>
-        <span class="drawer-count ct-alert">3</span>
+        <span class="drawer-count ct-alert" id="ct-alert">0</span>
       </div>
-      <div class="drawer-body">
-        <div class="d-item"><div class="d-dot dd-alert"></div><div class="d-content"><div class="d-title">Stock crítico — Paracetamol 500mg</div><div class="d-desc">Quedan 18 unidades. Punto de reorden alcanzado.</div><div class="d-meta">Hoy · Inventario</div></div></div>
-        <div class="d-item"><div class="d-dot dd-warn"></div><div class="d-content"><div class="d-title">Vencimiento próximo — Lote B-2241</div><div class="d-desc">14 unidades vencen el 30 de junio. Revisar rotación.</div><div class="d-meta">Ayer · Bodega</div></div></div>
-        <div class="d-item"><div class="d-dot dd-warn"></div><div class="d-content"><div class="d-title">Cierre de caja con diferencia</div><div class="d-desc">Diferencia de $2.300 en turno tarde del miércoles.</div><div class="d-meta">Mié 21 may · Caja</div></div></div>
+      <div class="drawer-body" id="alert-drawer-body">
+        <div style="font-size:12.5px;color:var(--gray-400);padding:6px 0;">Sin alertas registradas.</div>
       </div>
     </div>
     <div class="drawer">
       <div class="drawer-head">
         <div class="drawer-title"><div class="drawer-icon di-anun">📢</div>Anuncios</div>
-        <span class="drawer-count ct-anun">2</span>
+        <span class="drawer-count ct-anun" id="ct-anun">0</span>
       </div>
-      <div class="drawer-body">
-        <div class="d-item"><div class="d-dot dd-blue"></div><div class="d-content"><div class="d-title">Nuevo protocolo de dispensación</div><div class="d-desc">Entra en vigencia el 1 de junio. Revisar documento adjunto en Formación.</div><div class="d-meta">23 may · Dirección</div></div></div>
-        <div class="d-item"><div class="d-dot dd-blue"></div><div class="d-content"><div class="d-title">Bonificación por meta Q2</div><div class="d-desc">Se alcanzó el 96% de la meta mensual. Bono proporcional en liquidación de junio.</div><div class="d-meta">22 may · RRHH</div></div></div>
+      <div class="drawer-body" id="anun-drawer-body">
+        <div style="font-size:12.5px;color:var(--gray-400);padding:6px 0;">Cargando…</div>
       </div>
     </div>
     <div class="drawer">
@@ -1736,6 +1733,27 @@ async function loadAPIData() {
       }));
       _anId = Math.max(...ANUNCIOS.map(a=>a.id)) + 1;
       if (document.getElementById('page-anuncios').classList.contains('active')) renderAnuncios();
+    }
+
+    /* ── Mini-drawer Anuncios en Inicio ── */
+    const _vig = ANUNCIOS.filter(a => a.exp >= TODAY_STR);
+    const _anunCnt  = document.getElementById('ct-anun');
+    const _anunBody = document.getElementById('anun-drawer-body');
+    if (_anunCnt) _anunCnt.textContent = _vig.length;
+    if (_anunBody) {
+      if (_vig.length === 0) {
+        _anunBody.innerHTML = '<div style="font-size:12.5px;color:var(--gray-400);padding:6px 0;">Sin anuncios vigentes.</div>';
+      } else {
+        _anunBody.innerHTML = _vig.slice(0, 4).map(a =>
+          `<div class="d-item">
+            <div class="d-content">
+              <div class="d-title">${a.title}</div>
+              <div class="d-desc">${a.desc}</div>
+              <div class="d-meta">${prioLabel(a.prio)} · Vence ${a.exp}</div>
+            </div>
+          </div>`
+        ).join('');
+      }
     }
   } catch(err) {
     console.warn('[API] Error cargando datos:', err);
