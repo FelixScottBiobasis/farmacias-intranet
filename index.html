@@ -1367,7 +1367,9 @@ tr.grand-total .v-delta { color: rgba(255,255,255,0.65); }
 <script>
 const DAYS = ['Lun 19', 'Mar 20', 'Mié 21', 'Jue 22', 'Vie 23', 'Sáb 24', 'Dom 25'];
 
-const DATA = {
+const API_URL = 'https://script.google.com/macros/s/AKfycbwnp9guA-Rn1pbsnhSLHp4NV86qOYPKsK3HvOZohRUV5YB2uCGbUMiN8I4_YLUxIrPhkg/exec';
+
+let DATA = {
   sarai:   { v: [42000, 48000, 52000, 58000, 62000, 38400, 12000], t: [8, 9, 10, 12, 13, 8, 4], a: [5250, 5333, 5200, 4833, 4769, 4800, 3000] },
   daniela: { v: [38000, 42000, 46000, 52000, 56000, 40000, 13600], t: [8, 9, 10, 11, 14, 9, 4],  a: [4750, 4667, 4600, 4727, 4000, 4444, 3400] },
   total:   { v: [80000, 90000, 98000,110000,118000, 78400, 25600], t: [16,18, 20, 23, 27, 17, 8], a: [5000, 5000, 4900, 4783, 4370, 4612, 3200] }
@@ -1409,18 +1411,27 @@ function makeLine(id, data, color) {
 }
 
 let chartsInitialized = false;
+const CHARTS = {};
 function initCharts() {
   if (chartsInitialized) return;
   chartsInitialized = true;
-  makeBar('cs-v',    DATA.sarai.v,   COLORS.sarai);
-  makeBarInt('cs-t', DATA.sarai.t,   COLORS.sarai);
-  makeLine('cs-a',   DATA.sarai.a,   COLORS.sarai);
-  makeBar('cd-v',    DATA.daniela.v, COLORS.daniela);
-  makeBarInt('cd-t', DATA.daniela.t, COLORS.daniela);
-  makeLine('cd-a',   DATA.daniela.a, COLORS.daniela);
-  makeBar('ct-v',    DATA.total.v,   COLORS.total);
-  makeBarInt('ct-t', DATA.total.t,   COLORS.total);
-  makeLine('ct-a',   DATA.total.a,   COLORS.total);
+  CHARTS['cs-v']  = makeBar('cs-v',    DATA.sarai.v,   COLORS.sarai);
+  CHARTS['cs-t']  = makeBarInt('cs-t', DATA.sarai.t,   COLORS.sarai);
+  CHARTS['cs-a']  = makeLine('cs-a',   DATA.sarai.a,   COLORS.sarai);
+  CHARTS['cd-v']  = makeBar('cd-v',    DATA.daniela.v, COLORS.daniela);
+  CHARTS['cd-t']  = makeBarInt('cd-t', DATA.daniela.t, COLORS.daniela);
+  CHARTS['cd-a']  = makeLine('cd-a',   DATA.daniela.a, COLORS.daniela);
+  CHARTS['ct-v']  = makeBar('ct-v',    DATA.total.v,   COLORS.total);
+  CHARTS['ct-t']  = makeBarInt('ct-t', DATA.total.t,   COLORS.total);
+  CHARTS['ct-a']  = makeLine('ct-a',   DATA.total.a,   COLORS.total);
+}
+function updateCharts() {
+  const map = [
+    ['cs-v', DATA.sarai.v], ['cs-t', DATA.sarai.t], ['cs-a', DATA.sarai.a],
+    ['cd-v', DATA.daniela.v], ['cd-t', DATA.daniela.t], ['cd-a', DATA.daniela.a],
+    ['ct-v', DATA.total.v],  ['ct-t', DATA.total.t],  ['ct-a', DATA.total.a]
+  ];
+  map.forEach(([id, d]) => { if (CHARTS[id]) { CHARTS[id].data.datasets[0].data = d; CHARTS[id].update(); } });
 }
 
 /* ---- DIRECTORIO ---- */
@@ -1528,15 +1539,9 @@ function foFilter(status, btn) {
 }
 
 /* ---- ANUNCIOS ---- */
-const TODAY_STR = '2026-05-26';
-let ANUNCIOS = [
-  { id:1, title:'Nuevo protocolo de dispensación', desc:'Entra en vigencia el 1 de junio. Revisar el documento adjunto en la sección de Formación antes del viernes.', exp:'2026-06-30', farm:'all', prio:'importante' },
-  { id:2, title:'Bonificación por meta Q2', desc:'Se alcanzó el 96% de la meta mensual. Se abonará un bono proporcional en la liquidación de junio a todos los colaboradores.', exp:'2026-06-10', farm:'all', prio:'info' },
-  { id:3, title:'Cierre de caja — turno tarde', desc:'Se detectó diferencia de $2.300 en cierre del miércoles. Recordar procedimiento de cuadre antes de cerrar turno.', exp:'2026-05-31', farm:'f2', prio:'urgente' },
-  { id:4, title:'Actualización lista de precios mayo', desc:'Se actualizó la lista de precios de productos de dermofarmacia. Revisar en el sistema antes de cotizar.', exp:'2026-05-28', farm:'f1', prio:'info' },
-  { id:5, title:'Campaña vacunación antigripal', desc:'Recordar a clientes la disponibilidad de vacuna antigripal. Material punto de venta disponible en bodega.', exp:'2026-04-30', farm:'all', prio:'importante' },
-];
-let _anId = 6;
+const TODAY_STR = new Date().toISOString().slice(0, 10);
+let ANUNCIOS = [];
+let _anId = 1;
 
 function farmLabel(f) {
   if (f === 'all') return '<span class="farm-badge-all">Ambas farmacias</span>';
@@ -1619,6 +1624,124 @@ function toggleVencidos(el) {
   }
 }
 
+/* ---- API DATA LOADING ---- */
+function fmt(n) { return '$' + Number(n).toLocaleString('es-CL'); }
+
+function updateVendorTable(vendedores) {
+  const tbody = document.querySelector('.vendor-table tbody');
+  if (!tbody) return;
+  let html = '';
+  ['Sarai','Daniela'].forEach(farm => {
+    const grpClass = farm === 'Sarai' ? 'grp-sarai' : 'grp-daniela';
+    html += `<tr class="grp-header ${grpClass}"><td colspan="6">Farmacia ${farm}</td></tr>`;
+    const vendors = vendedores[farm] || [];
+    vendors.forEach(v => {
+      const tc = v.tareas >= 3 ? 'task-med' : 'task-low';
+      html += `<tr class="vnd-row">
+        <td><div class="vnd-name">${v.nombre}</div><div class="vnd-sub">Vendedor/a</div></td>
+        <td><div class="v-val">${fmt(v.ventas)}</div></td>
+        <td><div class="v-val">${fmt(v.ticket_promedio)}</div></td>
+        <td><div class="v-val">${v.tickets}</div></td>
+        <td><div class="v-val">${parseFloat(v.skus).toFixed(1)}</div></td>
+        <td><div class="task-count ${tc}">${v.tareas}</div></td>
+      </tr>`;
+    });
+    const totV = vendors.reduce((s,v)=>s+Number(v.ventas),0);
+    const totT = vendors.reduce((s,v)=>s+Number(v.tickets),0);
+    const totTp = totT ? Math.round(totV/totT) : 0;
+    const totSk = totT ? (vendors.reduce((s,v)=>s+Number(v.skus)*Number(v.tickets),0)/totT).toFixed(1) : '0.0';
+    const totTar = vendors.reduce((s,v)=>s+Number(v.tareas),0);
+    html += `<tr class="vnd-row" style="background:var(--gray-50);font-weight:600;">
+      <td><div class="vnd-name">Subtotal ${farm}</div></td>
+      <td><div class="v-val">${fmt(totV)}</div></td>
+      <td><div class="v-val">${fmt(totTp)}</div></td>
+      <td><div class="v-val">${totT}</div></td>
+      <td><div class="v-val">${totSk}</div></td>
+      <td><div class="task-count task-low">${totTar}</div></td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+async function loadAPIData() {
+  try {
+    const r = await fetch(API_URL);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    /* ── Gráficos ── */
+    const g = d.graficos;
+    const totA = g.total_ventas.map((v,i) => g.total_tickets[i] ? Math.round(v/g.total_tickets[i]) : 0);
+    DATA = {
+      sarai:   { v: g.sarai_ventas,   t: g.sarai_tickets,   a: g.sarai_ticket_prom },
+      daniela: { v: g.daniela_ventas, t: g.daniela_tickets, a: g.daniela_ticket_prom },
+      total:   { v: g.total_ventas,   t: g.total_tickets,   a: totA }
+    };
+    if (chartsInitialized) updateCharts();
+
+    /* ── Métricas inicio ── */
+    const mRows = document.querySelectorAll('.metrics-grid .metric-row');
+    ['Sarai','Daniela'].forEach((farm, i) => {
+      const m = d.metricas[farm]; if (!m || !mRows[i]) return;
+      const cells = mRows[i].querySelectorAll('.metric-value');
+      if (cells[0]) cells[0].textContent = fmt(m.ticket_promedio);
+      if (cells[1]) cells[1].textContent = m.n_tickets;
+      if (cells[2]) cells[2].textContent = parseFloat(m.skus).toFixed(1);
+      const tc = mRows[i].querySelector('.task-count');
+      if (tc) tc.textContent = m.tareas;
+    });
+    if (mRows[2]) {
+      const ms = d.metricas.Sarai, md = d.metricas.Daniela;
+      const totT = ms.n_tickets + md.n_tickets;
+      const totTp = totT ? Math.round((ms.ticket_promedio*ms.n_tickets + md.ticket_promedio*md.n_tickets)/totT) : 0;
+      const totSk = totT ? ((ms.skus*ms.n_tickets + md.skus*md.n_tickets)/totT).toFixed(1) : '0.0';
+      const cells = mRows[2].querySelectorAll('.metric-value');
+      if (cells[0]) cells[0].textContent = fmt(totTp);
+      if (cells[1]) cells[1].textContent = totT;
+      if (cells[2]) cells[2].textContent = totSk;
+      const tc = mRows[2].querySelector('.task-count');
+      if (tc) tc.textContent = ms.tareas + md.tareas;
+    }
+
+    /* ── Ventas por período ── */
+    const sRows = document.querySelectorAll('.sales-grid .metric-row');
+    ['Sarai','Daniela'].forEach((farm, i) => {
+      const v = d.ventas[farm]; if (!v || !sRows[i]) return;
+      const cells = sRows[i].querySelectorAll('.metric-value');
+      if (cells[0]) cells[0].textContent = fmt(v.semana);
+      if (cells[1]) cells[1].textContent = fmt(v.mes_acum);
+      if (cells[2]) cells[2].textContent = fmt(v.año_acum);
+    });
+    if (sRows[2]) {
+      const vs = d.ventas.Sarai, vd = d.ventas.Daniela;
+      const cells = sRows[2].querySelectorAll('.metric-value');
+      if (cells[0]) cells[0].textContent = fmt(vs.semana   + vd.semana);
+      if (cells[1]) cells[1].textContent = fmt(vs.mes_acum + vd.mes_acum);
+      if (cells[2]) cells[2].textContent = fmt(vs.año_acum + vd.año_acum);
+    }
+
+    /* ── Vendedores ── */
+    updateVendorTable(d.vendedores);
+
+    /* ── Anuncios ── */
+    if (d.anuncios && d.anuncios.length) {
+      const farmMap = { 'Todas':'all','Sarai':'f1','Daniela':'f2' };
+      const prioMap = { 'alta':'urgente','media':'importante','baja':'info' };
+      ANUNCIOS = d.anuncios.map(a => ({
+        id: Number(a.id),
+        title: a.titulo, desc: a.descripcion,
+        exp: a.fecha_venc,
+        farm: farmMap[a.farmacia] || 'all',
+        prio: prioMap[a.prioridad] || 'info'
+      }));
+      _anId = Math.max(...ANUNCIOS.map(a=>a.id)) + 1;
+      if (document.getElementById('page-anuncios').classList.contains('active')) renderAnuncios();
+    }
+  } catch(err) {
+    console.warn('[API] Error cargando datos:', err);
+  }
+}
+
 /* TAB NAVIGATION */
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', e => {
@@ -1646,6 +1769,9 @@ const fmt = d => d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' 
 const rangeStr = 'Semana pasada · ' + fmt(startLW) + ' al ' + fmt(endLW) + ' de ' + endLW.getFullYear();
 document.getElementById('week-range').textContent = rangeStr;
 document.getElementById('week-range-v').textContent = rangeStr;
+
+/* ── Cargar datos desde Google Sheets ── */
+loadAPIData();
 </script>
 </body>
 </html>
