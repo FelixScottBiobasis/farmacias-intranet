@@ -1583,12 +1583,22 @@ async function loadAPIData() {
     if (d.error) throw new Error(d.error);
 
     /* ── Gráficos ── */
+    // API v6: graficos = {lun:[s_v,s_t,s_prom,d_v,d_t,d_prom,tot_v,tot_t], mar:[...], ...}
     const g = d.graficos;
-    const totA = g.total_ventas.map((v,i) => g.total_tickets[i] ? Math.round(v/g.total_tickets[i]) : 0);
+    const days = ['lun','mar','mie','jue','vie','sab','dom'];
+    const sarai_ventas    = days.map(k => g[k]?.[0] ?? 0);
+    const sarai_tickets   = days.map(k => g[k]?.[1] ?? 0);
+    const sarai_prom      = days.map(k => g[k]?.[2] ?? 0);
+    const daniela_ventas  = days.map(k => g[k]?.[3] ?? 0);
+    const daniela_tickets = days.map(k => g[k]?.[4] ?? 0);
+    const daniela_prom    = days.map(k => g[k]?.[5] ?? 0);
+    const total_ventas    = days.map(k => g[k]?.[6] ?? 0);
+    const total_tickets   = days.map(k => g[k]?.[7] ?? 0);
+    const totA = total_ventas.map((v,i) => total_tickets[i] ? Math.round(v/total_tickets[i]) : 0);
     DATA = {
-      sarai:   { v: g.sarai_ventas,   t: g.sarai_tickets,   a: g.sarai_ticket_prom },
-      daniela: { v: g.daniela_ventas, t: g.daniela_tickets, a: g.daniela_ticket_prom },
-      total:   { v: g.total_ventas,   t: g.total_tickets,   a: totA }
+      sarai:   { v: sarai_ventas,   t: sarai_tickets,   a: sarai_prom },
+      daniela: { v: daniela_ventas, t: daniela_tickets, a: daniela_prom },
+      total:   { v: total_ventas,   t: total_tickets,   a: totA }
     };
     if (chartsInitialized) updateCharts();
 
@@ -1623,7 +1633,7 @@ async function loadAPIData() {
       const cells = sRows[i].querySelectorAll('.metric-value');
       if (cells[0]) cells[0].textContent = fmt(v.semana);
       if (cells[1]) cells[1].textContent = fmt(v.mes_acum);
-      if (cells[2]) cells[2].textContent = fmt(v.año_acum);
+      if (cells[2]) cells[2].textContent = fmt(v.anio_acum);
     });
     if (sRows[2]) {
       const vs = d.ventas.Sarai, vd = d.ventas.Daniela;
