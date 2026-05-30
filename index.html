@@ -667,7 +667,7 @@ tr.grand-total .v-delta { color: rgba(255,255,255,0.65); }
 
   <!-- CHARTS SECTION -->
   <div class="section-gap">
-    <div class="section-label">Evolución semanal — ventas diarias · lun 19 a dom 25 may</div>
+    <div class="section-label" id="evo-range">Evolución semanal — ventas diarias</div>
   </div>
 
   <div class="charts-outer">
@@ -1715,7 +1715,7 @@ const startLW = new Date(endLW); startLW.setDate(endLW.getDate() - 6);
 const fmtDate = d => d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
 const rangeStr = 'Semana pasada · ' + fmtDate(startLW) + ' al ' + fmtDate(endLW) + ' de ' + endLW.getFullYear();
 document.getElementById('week-range').textContent = rangeStr;
-document.getElementById('week-range-v').textContent = rangeStr;
+document.getElementById('week-range-v').textContent = rangeStr; var _er=document.getElementById('evo-range'); if(_er) _er.textContent = 'Evolución semanal — ventas diarias · ' + fmtDate(startLW) + ' al ' + fmtDate(endLW);
 
 /* ── Directorio ── */
 function dirCard(u, farm) {
