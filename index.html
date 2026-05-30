@@ -1297,8 +1297,8 @@ function makeBar(id, data, color) {
   return new Chart(document.getElementById(id), {
     type: 'bar',
     data: { labels: DAYS, datasets: [{ data, backgroundColor: color + '99', borderColor: color, borderWidth: 1.5, borderRadius: 3, borderSkipped: false }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toLocaleString('es-CL') } } },
-      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => '$' + (v/1000).toFixed(0) + 'k' }, border: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' €' + (c.parsed.y/100).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) } } },
+      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => '€' + (v/100).toLocaleString('es-ES') }, border: { display: false } } }
     }
   });
 }
@@ -1317,8 +1317,8 @@ function makeLine(id, data, color) {
   return new Chart(document.getElementById(id), {
     type: 'line',
     data: { labels: DAYS, datasets: [{ data, borderColor: color, borderWidth: 2, backgroundColor: color + '18', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: color }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toLocaleString('es-CL') } } },
-      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => '$' + (v/1000).toFixed(1) + 'k' }, border: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' €' + (c.parsed.y/100).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) } } },
+      scales: { x: { grid: { display: false }, ticks: tickOpts }, y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => '€' + (v/100).toFixed(0) }, border: { display: false } } }
     }
   });
 }
