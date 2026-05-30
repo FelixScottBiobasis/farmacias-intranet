@@ -1538,7 +1538,7 @@ function toggleVencidos(el) {
 }
 
 /* ---- API DATA LOADING ---- */
-function fmt(n) { return '$' + Number(n).toLocaleString('es-CL'); }
+function fmt(n) { return (Number(n)/100).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'; }
 
 function updateVendorTable(vendedores) {
   const tbody = document.querySelector('.vendor-table tbody');
@@ -1640,7 +1640,7 @@ async function loadAPIData() {
       const cells = sRows[2].querySelectorAll('.metric-value');
       if (cells[0]) cells[0].textContent = fmt(vs.semana   + vd.semana);
       if (cells[1]) cells[1].textContent = fmt(vs.mes_acum + vd.mes_acum);
-      if (cells[2]) cells[2].textContent = fmt(vs.año_acum + vd.año_acum);
+      if (cells[2]) cells[2].textContent = fmt(vs.anio_acum + vd.anio_acum);
     }
 
     /* ── Vendedores ── */
